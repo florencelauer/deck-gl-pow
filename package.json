@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@loaders.gl/csv": "^3.2.10",
+    "@loaders.gl/json": "^3.2.13",
     "d3-scale": "^2.0.0",
     "deck.gl": "^8.8.0",
     "mapbox-gl": "^1.13.0"

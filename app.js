@@ -1,15 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import mapboxgl from 'mapbox-gl';
 import {MapboxLayer} from '@deck.gl/mapbox';
-import {ArcLayer} from '@deck.gl/layers';
-import {H3HexagonLayer} from '@deck.gl/geo-layers';
 import {scaleLog} from 'd3-scale';
-import {h3ToGeo} from 'h3-js';
 import {TripsLayer} from '@deck.gl/geo-layers';
 import {load} from '@loaders.gl/core';
 import {CSVLoader} from '@loaders.gl/csv';
 import {AmbientLight, PointLight, LightingEffect} from '@deck.gl/core';
-
+import {_GeoJSONLoader} from '@loaders.gl/json';
 
 // Set your mapbox token here
 mapboxgl.accessToken = process.env.MapboxAccessToken; // eslint-disable-line
@@ -28,8 +25,8 @@ export function renderToDOM(container, data) {
     container,
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json',
     antialias: true,
-    center: [-74, 40.72],
-    zoom: 15.5,
+    center: [-73.494815, 45.523866],
+    zoom: 13.5,
     bearing: 20,
     pitch: 0
   });
@@ -77,22 +74,29 @@ function renderLayers(map, data) {
     material,
     effects: [lightingEffect]
   };
-  
+
   if (!data) {
     return;
   }
-
+  
   const layer = new MapboxLayer({
     id: 'trips-layer',
     type: TripsLayer,
-    data,
-    getPath: (d) => {
-      console.log(d);
-      return d.path;
-    },
+    data: data.features,
+    getPath: d => d.geometry.coordinates,
     // deduct start timestamp from each data point to avoid overflow
-    getTimestamps: d => d.timestamps,
-    getColor: d => (d.vendor === 0 ? theme.trailColor0 : theme.trailColor1),
+    getTimestamps: d => {
+      var times = []
+      for(var i = 50; i < d.geometry.coordinates.length; i++) {
+        times.push(i * 10);
+      }
+      if(times.length == 0) {
+        times.push(500)
+        times.push(1200)
+      }
+      return times
+    },
+    getColor: theme.trailColor0,
     opacity: 0.3,
     widthMinPixels: 2,
     rounded: true,
@@ -106,12 +110,9 @@ function renderLayers(map, data) {
 }
 
 export async function loadAndRender(container) {
-  const data = await load(
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/safegraph/sf-pois.csv',
-    CSVLoader
-  );
   const tripsData = await load(
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/trips-v7.json',
+    './geojson-route.geojson',
+    _GeoJSONLoader
   );
   const mockTripsData = [
     {

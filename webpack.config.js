@@ -10,7 +10,8 @@ const CONFIG = {
 
   output: {
     library: 'App'
-  }
+  },
+  devtool: 'eval-source-map'
 };
 
 // This line enables bundling against src in this repo rather than installed module
