@@ -4,23 +4,31 @@ import {MapboxLayer} from '@deck.gl/mapbox';
 import {scaleLog} from 'd3-scale';
 import {TripsLayer} from '@deck.gl/geo-layers';
 import {load} from '@loaders.gl/core';
-import {CSVLoader} from '@loaders.gl/csv';
 import {AmbientLight, PointLight, LightingEffect} from '@deck.gl/core';
 import {_GeoJSONLoader} from '@loaders.gl/json';
+import {createRoot} from 'react-dom/client';
 
-// Set your mapbox token here
-mapboxgl.accessToken = process.env.MapboxAccessToken; // eslint-disable-line
+mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmVuY2VsYXVlciIsImEiOiJjbGN0OWVkcDMweDRzM3BvZjcydTFndmZvIn0._nDPp6JZlmEdnJINKPMRyA'; // eslint-disable-line
 
-const colorScale = scaleLog()
-  .domain([10, 100, 1000, 10000])
-  .range([
-    [255, 255, 178],
-    [254, 204, 92],
-    [253, 141, 60],
-    [227, 26, 28]
-  ]);
+function setTimestamps(data) {
+  var sum = 0;
+  data.properties.data.segments.forEach((value) => {
+    sum += value.travelTimeSeconds;
+  });
+  
+  var times = []
+  const interval = sum/data.geometry.coordinates.length;
+  for(var i = 0; i < data.geometry.coordinates.length; i+=interval) {
+    times.push(i * 10);
+  }
+  if(times.length == 0) {
+    times.push(500)
+    times.push(1200)
+  }
+  return times
+}
 
-export function renderToDOM(container, data) {
+function createMap(container, data) {  
   const map = new mapboxgl.Map({
     container,
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json',
@@ -34,94 +42,59 @@ export function renderToDOM(container, data) {
   map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
   map.on('load', () => {
+    const layer = new MapboxLayer({
+      id: 'trips-layer',
+      type: TripsLayer,
+      data: data.features,
+      getPath: d => d.geometry.coordinates,
+      getTimestamps: d => setTimestamps(d),
+      getColor: [253, 128, 93],
+      opacity: 0.3,
+      widthMinPixels: 2,
+      rounded: true,
+      fadeTrail: true,
+      trailLength: 100,
+      currentTime: 0,
+      shadowEnabled: false
+    });
+    
+    map.addLayer(layer);
+    
+    var time = 0;
+    const animate = () => {
+      time = (time + 1) % 1800;
+      layer.setProps({
+        currentTime: time
+      });
+      window.requestAnimationFrame(animate);
+    };
 
-    renderLayers(map, data);
+    animate(time)
   });
 
   return {
-    update: newData => renderLayers(map, newData),
+    update: newData => renderLayers(map, newData, time),
     remove: () => {
       map.remove();
     }
   };
 }
 
-function renderLayers(map, data) {
-  const ambientLight = new AmbientLight({
-    color: [255, 255, 255],
-    intensity: 1.0
-  });
-  
-  const pointLight = new PointLight({
-    color: [255, 255, 255],
-    intensity: 2.0,
-    position: [-74.05, 40.7, 8000]
-  });
-
-  const lightingEffect = new LightingEffect({ambientLight, pointLight});
-
-  const material = {
-    ambient: 0.1,
-    diffuse: 0.6,
-    shininess: 32,
-    specularColor: [60, 64, 70]
-  };
-
-  let theme = {
-    buildingColor: [74, 80, 87],
-    trailColor0: [253, 128, 93],
-    trailColor1: [23, 184, 190],
-    material,
-    effects: [lightingEffect]
-  };
-
-  if (!data) {
-    return;
-  }
-  
-  const layer = new MapboxLayer({
-    id: 'trips-layer',
-    type: TripsLayer,
-    data: data.features,
-    getPath: d => d.geometry.coordinates,
-    // deduct start timestamp from each data point to avoid overflow
-    getTimestamps: d => {
-      var times = []
-      for(var i = 50; i < d.geometry.coordinates.length; i++) {
-        times.push(i * 10);
-      }
-      if(times.length == 0) {
-        times.push(500)
-        times.push(1200)
-      }
-      return times
-    },
-    getColor: theme.trailColor0,
-    opacity: 0.3,
-    widthMinPixels: 2,
-    rounded: true,
-    fadeTrail: true,
-    trailLength: 100,
-    currentTime: 1000,
-    shadowEnabled: false
-  });
-
-  map.addLayer(layer);
-}
-
-export async function loadAndRender(container) {
+async function loadAndRender(container) {
   const tripsData = await load(
     './geojson-route.geojson',
     _GeoJSONLoader
   );
-  const mockTripsData = [
-    {
-      waypoints: [
-       {coordinates: [-122.3907988, 37.7664413], timestamp: 1554772579000},
-       {coordinates: [-122.3908298,37.7667706], timestamp: 1554772579010},
-       {coordinates: [-122.4485672, 37.8040182], timestamp: 1554772580200}
-      ]
-    }
-  ]
-  renderToDOM(container, tripsData);
+  createMap(container, tripsData);
 }
+
+export default function Counter() {
+  loadAndRender(document.getElementById('app'))
+
+  return <div className='counter'></div>
+}
+
+const root = createRoot(document.getElementById("root"));
+root.render(
+    <Counter/>
+);

@@ -11,7 +11,21 @@ const CONFIG = {
   output: {
     library: 'App'
   },
-  devtool: 'eval-source-map'
+  devtool: 'eval-source-map',
+  module: {
+    rules: [
+      {
+        // Transpile ES6 to ES5 with babel
+        // Remove if your app does not use JSX or you don't need to support old browsers
+        test: /\.js$/,
+        loader: 'babel-loader',
+        exclude: [/node_modules/],
+        options: {
+          presets: ['@babel/preset-react']
+        }
+      }
+    ]
+  }
 };
 
 // This line enables bundling against src in this repo rather than installed module
