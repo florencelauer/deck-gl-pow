@@ -1,14 +1,10 @@
-import React, {useState, useEffect} from 'react';
-import mapboxgl from 'mapbox-gl';
+import React from 'react';
+import maplibreGl from 'maplibre-gl';
 import {MapboxLayer} from '@deck.gl/mapbox';
-import {scaleLog} from 'd3-scale';
 import {TripsLayer} from '@deck.gl/geo-layers';
 import {load} from '@loaders.gl/core';
-import {AmbientLight, PointLight, LightingEffect} from '@deck.gl/core';
 import {_GeoJSONLoader} from '@loaders.gl/json';
 import {createRoot} from 'react-dom/client';
-
-mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmVuY2VsYXVlciIsImEiOiJjbGN0OWVkcDMweDRzM3BvZjcydTFndmZvIn0._nDPp6JZlmEdnJINKPMRyA'; // eslint-disable-line
 
 function setTimestamps(data) {
   var sum = 0;
@@ -29,7 +25,7 @@ function setTimestamps(data) {
 }
 
 function createMap(container, data) {  
-  const map = new mapboxgl.Map({
+  const map = new maplibreGl.Map({
     container,
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json',
     antialias: true,
@@ -39,7 +35,7 @@ function createMap(container, data) {
     pitch: 0
   });
 
-  map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+  map.addControl(new maplibreGl.NavigationControl(), 'top-left');
 
   map.on('load', () => {
     const layer = new MapboxLayer({

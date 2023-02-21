@@ -1,5 +1,5 @@
 {
-  "name": "mapbox-custom-layer",
+  "name": "maplibre-custom-layer",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
@@ -16,7 +16,7 @@
     "d3-request": "^1.0.5",
     "d3-scale": "^2.0.0",
     "deck.gl": "^8.8.0",
-    "mapbox-gl": "^1.13.0",
+    "maplibre-gl": "^2.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-map-gl": "^7.0.16"
