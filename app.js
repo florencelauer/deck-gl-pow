@@ -5,6 +5,10 @@ import {TripsLayer} from '@deck.gl/geo-layers';
 import {_GeoJSONLoader} from '@loaders.gl/json';
 import {createRoot} from 'react-dom/client';
 
+function getTooltip({object}) {
+  return object && object.properties.name;
+}
+
 function setTimestamps(data) {
   var sum = 0;
   data.properties.data.segments.forEach((value) => {
@@ -23,12 +27,14 @@ function setTimestamps(data) {
   return times
 }
 
+var thickIndex = -1;
+
 export default function Counter() {
   const [time, setTime] = useState(0);
   const [animation] = useState({});
 
   const animate = () => {
-    setTime(t => (t + 1) % 1000);
+    setTime(t => (t + 1) % 700);
     animation.id = window.requestAnimationFrame(animate);
   };
 
@@ -37,6 +43,7 @@ export default function Counter() {
     return () => window.cancelAnimationFrame(animation.id);
   }, [animation]);
 
+
   const layer = [
     new TripsLayer({
       id: 'trips-layer',
@@ -44,14 +51,33 @@ export default function Counter() {
       loaders: [_GeoJSONLoader],
       getPath: d => d.geometry.coordinates,
       getTimestamps: d => setTimestamps(d),
-      getColor: [253, 128, 93],
-      opacity: 0.3,
+      getColor: d => {
+        const rgb = d.properties.color
+        return [parseInt(rgb.substring(1,3), 16), parseInt(rgb.substring(3,5), 16), parseInt(rgb.substring(5), 16)]
+      },
+      getWidth: (d, i) => {
+        if(i.index === thickIndex) {
+          return 50;
+        }
+        return 3;
+      },
+      opacity: 0.6,
       widthMinPixels: 2,
       rounded: true,
       fadeTrail: true,
-      trailLength: 300,
+      trailLength: 400,
       currentTime: time,
-      shadowEnabled: false
+      shadowEnabled: false,
+      pickable: true,
+      updateTriggers: {
+        getWidth: thickIndex
+      },
+      onHover: (line) => {
+        thickIndex = line.index;
+      },
+      onClick: (line) => {
+        console.log(line)
+      }
     })
   ];
 
@@ -68,6 +94,7 @@ export default function Counter() {
       layers={layer}
       initialViewState={INITIAL_VIEW_STATE}
       controller={true}
+      getTooltip={getTooltip}
     >
       <Map reuseMaps mapStyle='https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json' preventStyleDiffing={true}/>
     </DeckGL>
