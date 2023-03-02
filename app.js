@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import DeckGL from '@deck.gl/react';
 import {Map} from 'react-map-gl';
 import {TripsLayer} from '@deck.gl/geo-layers';
-import {_GeoJSONLoader} from '@loaders.gl/json';
 import {createRoot} from 'react-dom/client';
 
 function getTooltip({object}) {
@@ -29,7 +28,7 @@ function setTimestamps(data) {
 
 var thickIndex = -1;
 
-export default function Counter() {
+export default function Counter({data}) {
   const [time, setTime] = useState(0);
   const [animation] = useState({});
 
@@ -47,8 +46,7 @@ export default function Counter() {
   const layer = [
     new TripsLayer({
       id: 'trips-layer',
-      data: './geojson-route.geojson',
-      loaders: [_GeoJSONLoader],
+      data,
       getPath: d => d.geometry.coordinates,
       getTimestamps: d => setTimestamps(d),
       getColor: d => {
@@ -102,6 +100,8 @@ export default function Counter() {
 }
 
 const root = createRoot(document.getElementById("root"));
-root.render(
-    <Counter/>
-);
+fetch('./geojson-route.geojson')
+    .then(response => response.json())
+    .then(({features}) => {
+      root.render(<Counter data={features} />);
+    });
