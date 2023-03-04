@@ -3,6 +3,8 @@ import DeckGL from '@deck.gl/react';
 import {Map} from 'react-map-gl';
 import {TripsLayer} from '@deck.gl/geo-layers';
 import {createRoot} from 'react-dom/client';
+import { ScatterplotLayer } from 'deck.gl';
+import ScatterplotCustomLayer from './scatter-plot-custom-layer'
 
 function getTooltip({object}) {
   return object && object.properties.name;
@@ -28,7 +30,7 @@ function setTimestamps(data) {
 
 var thickIndex = -1;
 
-export default function Counter({data}) {
+export default function Counter({routeData, nodeData}) {
   const [time, setTime] = useState(0);
   const [animation] = useState({});
 
@@ -46,7 +48,7 @@ export default function Counter({data}) {
   const layer = [
     new TripsLayer({
       id: 'trips-layer',
-      data,
+      data: routeData,
       getPath: d => d.geometry.coordinates,
       getTimestamps: d => setTimestamps(d),
       getColor: d => {
@@ -76,7 +78,36 @@ export default function Counter({data}) {
       onClick: (line) => {
         console.log(line)
       }
-    })
+    }),
+    
+    new ScatterplotLayer({
+      id: 'nodes-layer-selected',
+      data: nodeData,
+      filled: true,
+      stroked: true,
+      getPosition: d => d.geometry.coordinates,
+      getFillColor: d => {
+        const rgb = d.properties.color
+        return [parseInt(rgb.substring(1,3), 16), parseInt(rgb.substring(3,5), 16), parseInt(rgb.substring(5), 16),255]
+      },
+      getLineColor: [255,255,255,255],
+      getRadius: 100,
+      extensions: [new ScatterplotCustomLayer()]
+    }),
+
+    new ScatterplotLayer({
+      id: 'nodes-layer',
+      data: nodeData,
+      filled: true,
+      stroked: true,
+      getPosition: d => d.geometry.coordinates,
+      getFillColor: d => {
+        const rgb = d.properties.color
+        return [parseInt(rgb.substring(1,3), 16), parseInt(rgb.substring(3,5), 16), parseInt(rgb.substring(5), 16),255]
+      },
+      getLineColor: [255,255,255,255],
+      getRadius: 10
+    }),
   ];
 
   const INITIAL_VIEW_STATE = {
@@ -102,6 +133,10 @@ export default function Counter({data}) {
 const root = createRoot(document.getElementById("root"));
 fetch('./geojson-route.geojson')
     .then(response => response.json())
-    .then(({features}) => {
-      root.render(<Counter data={features} />);
+    .then((routes) => {
+      fetch('./nodes.geojson')
+        .then(response => response.json())
+        .then((nodes) => {
+          root.render(<Counter routeData={routes.features} nodeData={nodes.features} />);
+        });
     });
