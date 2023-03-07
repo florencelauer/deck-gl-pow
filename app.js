@@ -28,10 +28,10 @@ function setTimestamps(data) {
   return times
 }
 
-var thickIndex = -1;
+var routeIndex = -1;
 var nodeIndex = -1;
-var nodeSelected = null;
 var routeSelected = null; 
+var nodeSelected = null;
 
 export default function Counter({routeData, nodeData}) {
   const [time, setTime] = useState(0);
@@ -67,10 +67,10 @@ export default function Counter({routeData, nodeData}) {
       shadowEnabled: false,
       pickable: true,
       updateTriggers: {
-        getWidth: thickIndex
+        getWidth: routeIndex
       },
       onHover: (line) => {
-        thickIndex = line.index;
+        routeIndex = line.index;
       },
       onClick: ({object}) => {
         routeSelected = [object]
@@ -95,7 +95,7 @@ export default function Counter({routeData, nodeData}) {
         return [200, 200, 0]
       },
       getWidth: (d, i) => {
-        if(i.index === thickIndex) {
+        if(i.index === routeIndex) {
           return 70;
         }
         return 20;
@@ -129,7 +129,10 @@ export default function Counter({routeData, nodeData}) {
       },
       getLineColor: [255,255,255,255],
       getRadius: (d, i) => {
-        return 20;
+        if(i.index === nodeIndex) {
+          return 20;
+        }
+        return 10;
       },
       updateTriggers: {
         getRadius: nodeIndex
