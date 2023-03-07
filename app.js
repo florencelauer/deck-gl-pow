@@ -29,6 +29,8 @@ function setTimestamps(data) {
 }
 
 var thickIndex = -1;
+var nodeIndex = -1;
+var nodeSelected = null;
 
 export default function Counter({routeData, nodeData}) {
   const [time, setTime] = useState(0);
@@ -82,7 +84,7 @@ export default function Counter({routeData, nodeData}) {
     
     new ScatterplotLayer({
       id: 'nodes-layer-selected',
-      data: nodeData,
+      data: nodeSelected,
       filled: true,
       stroked: true,
       getPosition: d => d.geometry.coordinates,
@@ -106,7 +108,22 @@ export default function Counter({routeData, nodeData}) {
         return [parseInt(rgb.substring(1,3), 16), parseInt(rgb.substring(3,5), 16), parseInt(rgb.substring(5), 16),255]
       },
       getLineColor: [255,255,255,255],
-      getRadius: 10
+      getRadius: (d, i) => {
+        if(i.index === nodeIndex) {
+          return 20;
+        }
+        return 10;
+      },
+      updateTriggers: {
+        getRadius: nodeIndex
+      },
+      pickable: true,
+      onHover: (node) => {
+        nodeIndex = node.index;
+      },
+      onClick: ({object}) => {
+        nodeSelected = [object]
+      }
     }),
   ];
 
