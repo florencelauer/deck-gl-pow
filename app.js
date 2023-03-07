@@ -21,15 +21,12 @@ function setTimestamps(data) {
   for(var i = 0; i < data.geometry.coordinates.length; i+=interval) {
     times.push(i);
   }
-  if(times.length == 0) {
-    times.push(500)
-    times.push(1200)
-  }
   return times
 }
 
 var routeIndex = -1;
 var nodeIndex = -1;
+
 var routeSelected = null; 
 var nodeSelected = null;
 
