@@ -70,6 +70,7 @@ export default function Counter({routeData, nodeData}) {
         routeIndex = line.index;
       },
       onClick: ({object}) => {
+        nodeSelected = null
         routeSelected = [object]
       }
     }),
@@ -139,6 +140,7 @@ export default function Counter({routeData, nodeData}) {
         nodeIndex = node.index;
       },
       onClick: ({object}) => {
+        routeSelected = null
         nodeSelected = [object]
       }
     }),
