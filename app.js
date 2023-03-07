@@ -31,6 +31,7 @@ function setTimestamps(data) {
 var thickIndex = -1;
 var nodeIndex = -1;
 var nodeSelected = null;
+var routeSelected = null; 
 
 export default function Counter({routeData, nodeData}) {
   const [time, setTime] = useState(0);
@@ -57,18 +58,12 @@ export default function Counter({routeData, nodeData}) {
         const rgb = d.properties.color
         return [parseInt(rgb.substring(1,3), 16), parseInt(rgb.substring(3,5), 16), parseInt(rgb.substring(5), 16)]
       },
-      getWidth: (d, i) => {
-        if(i.index === thickIndex) {
-          return 50;
-        }
-        return 3;
-      },
-      opacity: 0.6,
+      opacity: 0.8,
       widthMinPixels: 2,
       rounded: true,
       fadeTrail: true,
       trailLength: 400,
-      currentTime: time,
+      currentTime: 0,
       shadowEnabled: false,
       pickable: true,
       updateTriggers: {
@@ -77,9 +72,34 @@ export default function Counter({routeData, nodeData}) {
       onHover: (line) => {
         thickIndex = line.index;
       },
-      onClick: (line) => {
-        console.log(line)
+      onClick: ({object}) => {
+        routeSelected = [object]
       }
+    }),
+
+    new TripsLayer({
+      id: 'trips-layer-selected',
+      data: routeSelected,
+      getPath: d => d.geometry.coordinates,
+      getTimestamps: d => {setTimestamps(d);},
+      opacity: 0.8,
+      widthMinPixels: 2,
+      rounded: true,
+      fadeTrail: true,
+      trailLength: 400,
+      currentTime: parseFloat(Math.cos(time/20)*100 + 200),
+      shadowEnabled: false,
+      pickable: true,
+      getColor: d => {
+        const rgb = d.properties.color
+        return [200, 200, 0]
+      },
+      getWidth: (d, i) => {
+        if(i.index === thickIndex) {
+          return 70;
+        }
+        return 20;
+      },
     }),
     
     new ScatterplotLayer({
@@ -109,10 +129,7 @@ export default function Counter({routeData, nodeData}) {
       },
       getLineColor: [255,255,255,255],
       getRadius: (d, i) => {
-        if(i.index === nodeIndex) {
-          return 20;
-        }
-        return 10;
+        return 20;
       },
       updateTriggers: {
         getRadius: nodeIndex
